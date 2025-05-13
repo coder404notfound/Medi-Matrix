@@ -1,0 +1,9 @@
+<nav class="bg-pink-800 p-4">
+    <div class="container mx-auto">
+        <ul class="flex space-x-4">
+            <li><a href="/" class="text-white hover:bg-pink-900 p-2 rounded {% if request.path == '/' %}bg-pink-900{% else %}bg-pink-700{% endif %}">Home</a></li>
+            <li><a href="/diabetes" class="text-white hover:bg-pink-900 p-2 rounded {% if request.path == '/diabetes' %}bg-pink-900{% else %}bg-pink-700{% endif %}">Diabetes Prediction</a></li>
+            <li><a href="/heart_disease" class="text-white hover:bg-pink-900 p-2 rounded {% if request.path == '/heart_disease' %}bg-pink-900{% else %}bg-pink-700{% endif %}">Heart Disease Prediction</a></li>
+        </ul>
+    </div>
+</nav>

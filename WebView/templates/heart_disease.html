@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediMatrix - Heart Disease Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-black text-white">
+    {% include 'navbar.html' %}
+    <div class="container mx-auto mt-10">
+        <h1 class="text-3xl font-bold mb-4 text-center">Heart Disease Prediction</h1>
+        <form method="POST" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="Age" class="block text-lg">Age:</label>
+                    <input type="number" name="Age" id="Age" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="Sex" class="block text-lg">Sex:</label>
+                    <select name="Sex" id="Sex" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="ChestPainType" class="block text-lg">Chest Pain Type:</label>
+                    <select name="ChestPainType" id="ChestPainType" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="TA">Typical Angina</option>
+                        <option value="NAP">Non-Anginal Pain</option>
+                        <option value="ATA">Atypical Angina</option>
+                        <option value="ASY">Asymptomatic</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="RestingBP" class="block text-lg">Resting Blood Pressure:</label>
+                    <input type="number" step="0.1" name="RestingBP" id="RestingBP" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="Cholesterol" class="block text-lg">Cholesterol:</label>
+                    <input type="number" step="0.1" name="Cholesterol" id="Cholesterol" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="FastingBS" class="block text-lg">Fasting Blood Sugar:</label>
+                    <select name="FastingBS" id="FastingBS" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="0">False (< 120 mg/dl)</option>
+                        <option value="1">True (> 120 mg/dl)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="RestingECG" class="block text-lg">Resting ECG:</label>
+                    <select name="RestingECG" id="RestingECG" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="Normal">Normal</option>
+                        <option value="ST">ST-T Wave Abnormality</option>
+                        <option value="LVH">Left Ventricular Hypertrophy</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="MaxHR" class="block text-lg">Max Heart Rate:</label>
+                    <input type="number" name="MaxHR" id="MaxHR" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="ExerciseAngina" class="block text-lg">Exercise Angina:</label>
+                    <select name="ExerciseAngina" id="ExerciseAngina" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="Y">Yes</option>
+                        <option value="N">No</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="Oldpeak" class="block text-lg">Oldpeak (ST depression induced by exercise):</label>
+                    <input type="number" step="0.1" name="Oldpeak" id="Oldpeak" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="ST_Slope" class="block text-lg">ST Slope:</label>
+                    <select name="ST_Slope" id="ST_Slope" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        <option value="Up">Upsloping</option>
+                        <option value="Flat">Flat</option>
+                        <option value="Down">Downsloping</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="heartDiseaseModelSelect">Select Heart Disease Model:</label>
+                    <select name="heart_disease_model" id="heartDiseaseModelSelect" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        {% for model_name in models['heart_disease'].keys() %}
+                            <option value="{{ model_name }}">{{ model_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="bg-pink-800 text-white p-2 rounded w-full hover:bg-pink-600">Predict</button>
+        </form>
+        <div id="predictionResult" class="mt-4"></div>
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Collect form data
+            const formData = {
+                model: document.getElementById('heartDiseaseModelSelect').value,
+                Age: parseInt(document.getElementById('Age').value),
+                Sex: document.getElementById('Sex').value,
+                ChestPainType: document.getElementById('ChestPainType').value,
+                RestingBP: parseFloat(document.getElementById('RestingBP').value),
+                Cholesterol: parseFloat(document.getElementById('Cholesterol').value),
+                FastingBS: parseInt(document.getElementById('FastingBS').value),
+                RestingECG: document.getElementById('RestingECG').value,
+                MaxHR: parseInt(document.getElementById('MaxHR').value),
+                ExerciseAngina: document.getElementById('ExerciseAngina').value,
+                Oldpeak: parseFloat(document.getElementById('Oldpeak').value),
+                ST_Slope: document.getElementById('ST_Slope').value
+            };
+
+            // Send prediction request
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('predictionResult');
+                if (data.heart_disease_prediction !== undefined) {
+                    resultDiv.innerHTML = `
+                        <h2 class="text-2xl">Prediction Result:</h2>
+                        <p class="text-lg">
+                            The prediction for heart disease with the model ${formData.model} is: 
+                            ${data.heart_disease_prediction === 1 ? 
+                                '<span class="text-red-500">Positive (High Risk with probability: ' + data.heart_disease_probability + '%)</span>' : 
+                                '<span class="text-green-500">Negative (Low Risk with probability: ' + data.heart_disease_probability + '%)</span>'}
+                        </p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2 class="text-2xl text-red-500">Error</h2>
+                        <p class="text-lg">Unable to get prediction. Please try again.</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultDiv = document.getElementById('predictionResult');
+                resultDiv.innerHTML = `
+                    <h2 class="text-2xl text-red-500">Error</h2>
+                    <p class="text-lg">An error occurred while predicting. Please try again.</p>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
