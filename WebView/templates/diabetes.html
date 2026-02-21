@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediMatrix - Diabetes Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-black text-white">
+    {% include 'navbar.html' %}
+    <div class="container mx-auto mt-10">
+        <h1 class="text-3xl font-bold mb-4 text-center">Diabetes Prediction</h1>
+        <form method="POST" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="Pregnancies" class="block text-lg">Number of Pregnancies:</label>
+                    <input type="number" name="Pregnancies" id="Pregnancies" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="Glucose" class="block text-lg">Glucose Level:</label>
+                    <input type="number" step="0.1" name="Glucose" id="Glucose" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="BloodPressure" class="block text-lg">Blood Pressure (mm Hg):</label>
+                    <input type="number" step="0.1" name="BloodPressure" id="BloodPressure" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="SkinThickness" class="block text-lg">Skin Thickness (mm):</label>
+                    <input type="number" step="0.1" name="SkinThickness" id="SkinThickness" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="Insulin" class="block text-lg">Insulin Level (mu U/ml):</label>
+                    <input type="number" step="0.1" name="Insulin" id="Insulin" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="BMI" class="block text-lg">BMI (Body Mass Index):</label>
+                    <input type="number" step="0.1" name="BMI" id="BMI" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="DiabetesPedigreeFunction" class="block text-lg">Diabetes Pedigree Function:</label>
+                    <input type="number" step="0.01" name="DiabetesPedigreeFunction" id="DiabetesPedigreeFunction" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="Age" class="block text-lg">Age:</label>
+                    <input type="number" name="Age" id="Age" required class="p-2 rounded bg-gray-700 text-white w-full">
+                </div>
+                <div class="mb-4">
+                    <label for="diabetesModelSelect">Select Diabetes Model:</label>
+                    <select name="diabetes_model" id="diabetesModelSelect" required class="p-2 rounded bg-gray-700 text-white w-full">
+                        {% for model_name in models['diabetes'].keys() %}
+                            <option value="{{ model_name }}">{{ model_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="bg-pink-800 text-white p-2 rounded w-full hover:bg-pink-600">Predict</button>
+        </form>
+        <div id="predictionResult" class="mt-4"></div>
+</div>
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        // Collect form data
+        const formData = {
+            model: document.getElementById('diabetesModelSelect').value,
+            Pregnancies: parseInt(document.getElementById('Pregnancies').value),
+            Glucose: parseFloat(document.getElementById('Glucose').value),
+            BloodPressure: parseFloat(document.getElementById('BloodPressure').value),
+            SkinThickness: parseFloat(document.getElementById('SkinThickness').value),
+            Insulin: parseFloat(document.getElementById('Insulin').value),
+            BMI: parseFloat(document.getElementById('BMI').value),
+            DiabetesPedigreeFunction: parseFloat(document.getElementById('DiabetesPedigreeFunction').value),
+            Age: parseInt(document.getElementById('Age').value)
+        };
+
+        // Send prediction request
+        fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('predictionResult');
+            if (data.diabetes_prediction !== undefined) {
+                resultDiv.innerHTML = `
+                    <h2 class="text-2xl">Prediction Result:</h2>
+                    <p class="text-lg">
+                        The prediction for diabetes with the model ${formData.model} is: 
+                        ${data.diabetes_prediction === 1 ? 
+                            '<span class="text-red-500">Positive (High Risk with probability: ' + data.diabetes_probability + '%)</span>' : 
+                            '<span class="text-green-500">Negative (Low Risk with probability: ' + data.diabetes_probability + '%)</span>'}
+                    </p>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <h2 class="text-2xl text-red-500">Error</h2>
+                    <p class="text-lg">Unable to get prediction. Please try again.</p>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.innerHTML = `
+                <h2 class="text-2xl text-red-500">Error</h2>
+                <p class="text-lg">An error occurred while predicting. Please try again.</p>
+            `;
+        });
+    });
+</script>
+</body>
+</html>
